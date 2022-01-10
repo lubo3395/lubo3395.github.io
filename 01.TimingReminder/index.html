@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>定时提醒</title>
+    <link rel="stylesheet" href="index.css">
+    <script>
+        if (/^file.*/.test(location.origin)) {
+            console.log("未运行在服务器");
+
+            var img = new Image();
+            img.src = 'http://localhost/favicon.ico?_t=' + Date.now();
+            img.onload = function () {
+                console.log("本地服务器已启动，即将跳转至服务器地址");
+                location.assign("http://localhost/AA_github/tools/01.TimingReminder/");
+            };
+            img.onerror = function () {
+                console.log("本地服务器尚未启动");
+            };
+        }
+        var myWorker = new Worker('worker.js');
+    </script>
+</head>
+
+<body>
+    <fieLdset>
+        <legend>定时器</legend>
+        <div>
+            <label>
+                <input id="hour" type="number" min="0" max="60" value="0">
+                <span>小时</span>
+            </label>
+            <label>
+                <input id="minute" type="number" min="0" max="60" value="0">
+                <span>分钟</span>
+            </label>
+            <label>
+                <input id="second" type="number" min="0" max="60" value="5">
+                <span>秒</span>
+            </label>
+        </div>
+        <div style="margin:10px 0;">
+            <button onclick="startTiming()" style="margin-right: 20px;">倒计时开始</button>
+            <span>剩余 <b id="count">0</b> 秒</span>
+            <input type="text" placeholder="计划" style="margin-left:20px;color:red;">
+            <br>
+            <br>
+            <textarea></textarea>
+        </div>
+        <script>
+            myWorker.addEventListener("message", function (event) {
+                // console.log("网页 接收到了来自 worker.js 的消息");
+                // console.log(event.data);
+                let data = event.data,
+                    msg = data.msg;
+                if (msg == "playMusic") {
+                    playMusic();
+                } else if (msg == "pauseMusic") {
+                    pauseMusic();
+                } else if (msg == "change_count") {
+                    document.querySelector("#count").innerText = data.count;
+                }
+            })
+            function startTiming() {
+                let h = Number(document.querySelector("#hour").value),
+                    m = Number(document.querySelector("#minute").value),
+                    s = Number(document.querySelector("#second").value);
+                let totalTime = s + m * 60 + h * 60 * 60;
+                document.querySelector("#count").innerText = totalTime;
+                myWorker.postMessage({
+                    func: "start_timing",
+                    totalTime,
+                });
+            }
+            function playMusic() {
+                let audio = document.querySelector("#audio");
+                audio.currentTime = 0;
+                audio.play();
+            }
+            function pauseMusic() {
+                let audio = document.querySelector("#audio");
+                audio.pause();
+            }
+        </script>
+    </fieLdset>
+    <fieldset>
+        <legend>铃声列表</legend>
+        <table border>
+            <tr>
+                <td>作者</td>
+                <td>
+                    <audio id="audio" src="https://www.lubo.world/static/res/audio/author.mp3" controls></audio>
+                </td>
+            </tr>
+            <tr>
+                <td>偏爱</td>
+                <td>
+                    <audio src="https://www.lubo.world/static/res/audio/偏爱.mp3" controls></audio>
+                </td>
+            </tr>
+            <tr>
+                <td>北京时间</td>
+                <td>
+                    <audio src="https://www.lubo.world/static/res/audio/北京时间.mp3" controls></audio>
+                </td>
+            </tr>
+            <tr>
+                <td width=150>游戏音乐</td>
+                <td>
+                    <audio src="https://www.lubo.world/static/res/audio/bg.mp3" controls></audio>
+                </td>
+            </tr>
+        </table>
+    </fieldset>
+    <fieldset>
+        <legend>计划列表</legend>
+        <table border width=500 style="text-align:center;">
+            <thead>
+                <tr>
+                    <th width=150>计划名称</th>
+                    <th>计划时间</th>
+                </tr>
+            </thead>
+            <tr>
+                <td>nodejs</td>
+                <td>1小时</td>
+            </tr>
+            <tr>
+                <td>看书：什么是数学</td>
+                <td>1小时</td>
+            </tr>
+        </table>
+    </fieldset>
+    <fieldset>
+        <legend>网络监测</legend>
+        <div>
+            <div>
+                <span>url: </span>
+                <input type="text" id="url" value="https://www.lubo.world/car.png" style="width:500px;margin:0 10px;">
+                <button id="start-check" onclick="keepWatchNetword()">开始检测</button>
+            </div>
+            <img id="test-online" src="https://www.lubo.world/car.png" alt="小汽车">
+        </div>
+        <script>
+            var testImg = document.querySelector("#test-online");
+            testImg.onload = function () {
+                console.log("图片加载成功，网络正常");
+            }
+            testImg.onerror = function () {
+                console.error("图片加载失败，网络故障", new Date().toLocaleString());
+            }
+            function keepWatchNetword() {
+                document.querySelector("#start-check").setAttribute("disabled", "true");
+                let url = "https://www.lubo.world/car.png?v=" + Math.random();
+                let time = 1000 * 5;
+                testImg.src = url
+                document.querySelector("#url").value = url;
+                setTimeout(() => {
+                    keepWatchNetword();
+                }, time);
+            }
+        </script>
+    </fieldset>
+
+    <script>
+        // myWorker.addEventListener("message", function (event) {
+        //     console.log("网页 接收到了来自 worker.js 的消息");
+        //     console.log(event.data);
+        // })
+    </script>
+</body>
+
+</html>
