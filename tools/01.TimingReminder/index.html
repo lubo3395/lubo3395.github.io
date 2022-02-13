@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>定时提醒</title>
     <link rel="stylesheet" href="index.css">
+    <script src="../js/public.js"></script>
     <script>
         if (/^file.*/.test(location.origin)) {
             console.log("未运行在服务器");
@@ -43,12 +44,12 @@
             </label>
         </div>
         <div style="margin:10px 0;">
-            <button onclick="startTiming()" style="margin-right: 20px;">倒计时开始</button>
+            <button onclick="startTiming()" style="margin-right: 20px;">开始倒计时</button>
             <span>剩余 <b id="count">0</b> 秒</span>
-            <input type="text" placeholder="计划" style="margin-left:20px;color:red;">
+            <input id="plan-title" type="text" placeholder="通知内容" style="margin-left:20px;color:red;">
             <br>
             <br>
-            <textarea></textarea>
+            <textarea id="plan-info"></textarea>
         </div>
         <script>
             myWorker.addEventListener("message", function (event) {
@@ -57,7 +58,17 @@
                 let data = event.data,
                     msg = data.msg;
                 if (msg == "playMusic") {
-                    playMusic();
+                    // playMusic();
+
+                    // 桌面提醒
+                    let title = document.querySelector("#plan-title").value.trim();
+                    if (title == "") title = "时间到！";
+                    let content = document.querySelector("#plan-info").value.trim();
+                    showNotification(title, content);
+
+                    pcSpeak("~欧买尬，我的天那，时间到了~" + title);
+                    console.log(123)
+
                 } else if (msg == "pauseMusic") {
                     pauseMusic();
                 } else if (msg == "change_count") {
@@ -76,74 +87,118 @@
                 });
             }
             function playMusic() {
-                let audio = document.querySelector("#audio");
+                let ring = document.querySelector('#ring-list').ring.value;
+                let audio = document.querySelector("#" + ring);
                 audio.currentTime = 0;
                 audio.play();
             }
             function pauseMusic() {
-                let audio = document.querySelector("#audio");
-                audio.pause();
+                let audios = document.querySelectorAll("audio");
+                audios.forEach(audio => {
+                    audio.pause();
+                })
             }
         </script>
     </fieLdset>
     <fieldset>
         <legend>铃声列表</legend>
-        <table border>
-            <tr>
-                <td>作者</td>
-                <td>
-                    <audio id="audio" src="https://www.lubo.world/static/res/audio/author.mp3" controls></audio>
-                </td>
-            </tr>
-            <tr>
-                <td>偏爱</td>
-                <td>
-                    <audio src="https://www.lubo.world/static/res/audio/偏爱.mp3" controls></audio>
-                </td>
-            </tr>
-            <tr>
-                <td>北京时间</td>
-                <td>
-                    <audio src="https://www.lubo.world/static/res/audio/北京时间.mp3" controls></audio>
-                </td>
-            </tr>
-            <tr>
-                <td width=150>游戏音乐</td>
-                <td>
-                    <audio src="https://www.lubo.world/static/res/audio/bg.mp3" controls></audio>
-                </td>
-            </tr>
-        </table>
+        <details>
+            <summary>铃声列表</summary>
+            <form id="ring-list">
+                <table border>
+                    <tr>
+                        <td>作者</td>
+                        <td>
+                            <audio id="ring1" src="https://www.lubo.world/static/res/audio/author.mp3" controls
+                                controlslist="nodownload"></audio>
+                        </td>
+                        <td>
+                            <input type="radio" name="ring" value="ring1" checked>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>偏爱</td>
+                        <td>
+                            <audio id="ring2" src="https://www.lubo.world/static/res/audio/偏爱.mp3" controls
+                                controlslist="nodownload"></audio>
+                        </td>
+                        <td>
+                            <input type="radio" name="ring" value="ring2">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>北京时间</td>
+                        <td>
+                            <audio id="ring3" src="https://www.lubo.world/static/res/audio/北京时间.mp3" controls
+                                controlslist="nodownload"></audio>
+                        </td>
+                        <td>
+                            <input type="radio" name="ring" value="ring3">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width=150>游戏音乐</td>
+                        <td>
+                            <audio id="ring4" src="https://www.lubo.world/static/res/audio/bg.mp3" controls
+                                controlslist="nodownload"></audio>
+                        </td>
+                        <td>
+                            <input type="radio" name="ring" value="ring4">
+                        </td>
+                    </tr>
+                </table>
+            </form>
+        </details>
     </fieldset>
     <fieldset>
         <legend>计划列表</legend>
-        <table border width=500 style="text-align:center;">
-            <thead>
-                <tr>
-                    <th width=150>计划名称</th>
-                    <th>计划时间</th>
-                </tr>
-            </thead>
-            <tr>
-                <td>nodejs</td>
-                <td>1小时</td>
-            </tr>
-            <tr>
-                <td>看书：什么是数学</td>
-                <td>1小时</td>
-            </tr>
-        </table>
+        <details>
+            <summary>计划列表</summary>
+            <div>
+                <table border width=500 style="text-align:center;">
+                    <thead>
+                        <tr>
+                            <th width=150>计划名称</th>
+                            <th>计划时间</th>
+                        </tr>
+                    </thead>
+                    <tr>
+                        <td>nodejs</td>
+                        <td>1小时</td>
+                    </tr>
+                    <tr>
+                        <td>看书：什么是数学</td>
+                        <td>1小时</td>
+                    </tr>
+                </table>
+            </div>
+        </details>
+    </fieldset>
+    <fieldset>
+        <legend>振动API</legend>
+        <details>
+            <button onclick="handleTestVibrate()">测试振动</button>
+            <script>
+                function handleTestVibrate() {
+                    window.navigator.vibrate([200, 200, 500, 100, 100]);
+                }
+            </script>
+        </details>
     </fieldset>
     <fieldset>
         <legend>网络监测</legend>
-        <div>
+        <details>
+            <summary>网络监测</summary>
             <div>
-                <span>url: </span>
-                <input type="text" id="url" value="https://www.lubo.world/car.png" style="width:500px;margin:0 10px;">
-                <button id="start-check" onclick="keepWatchNetword()">开始检测</button>
+                <div>
+                    <span>url: </span>
+                    <input id="url" type="text" value="https://www.lubo.world/car.png"
+                        style="width:500px;margin:0 10px;">
+                    <button id="start-check" onclick="keepWatchNetword()">开始检测</button>
+                </div>
+                <img id="test-online" src="https://www.lubo.world/car.png" alt="小汽车">
             </div>
-            <img id="test-online" src="https://www.lubo.world/car.png" alt="小汽车">
-        </div>
+        </details>
         <script>
             var testImg = document.querySelector("#test-online");
             testImg.onload = function () {
@@ -170,6 +225,118 @@
         //     console.log("网页 接收到了来自 worker.js 的消息");
         //     console.log(event.data);
         // })
+
+        // window桌面通知
+        var allowNotification = false;
+        function showNotification(title = 'hello', content = '') {
+            if (!('Notification' in window)) {
+                showMsg(title + "\n" + content);
+                return;
+            }
+            Notification.requestPermission(function (status) {
+                /* 
+                    default: 用户还未被询问是否授权，所以通知不会被显示
+                    granted: 之前已经询问过用户，并且用户已经授予了显示通知的权限
+                    denied: 用户已经明确的拒绝了显示通知的权限
+                */
+                // console.log(status); // 仅当值为 "granted" 时显示通知
+                if (status == "denied") {
+                    alert("请您设置允许本程序的通知权限\n点击浏览器地址栏左侧的查看网站信息，开启通知权限，并重新加载本程序");
+                    return;
+                } else if (status == "default") {
+                    alert("未允许通知权限");
+                    return;
+                } else {
+                    allowNotification = true;
+                }
+                var notification = new Notification(
+                    title,
+                    {
+                        dir: 'auto', //  文字的方向 它的值可以是 auto 自动, ltr 从左到右, or rtl 从右到左
+                        // lang: '', // 指定通知中所使用的语言。这个字符串必须在 BCP 47 language tag 文档中是有效的。
+                        body: content + '\n 10秒后自动关闭', // 通知中额外显示的字符串
+                        // tag: '', // 赋予通知一个ID，以便在必要的时候对通知进行刷新、替换或移除。
+                        icon: 'https://www.lubo.world/logo.png',
+                        silent: false, // true使通知静音
+                    }
+                );
+
+                setTimeout(function () {
+                    notification.close(); // 关闭桌面通知
+                }, 1000 * 10);
+
+                notification.onshow = function () {
+                    // 消息框显示时会被调用
+                    console.log('桌面通知显示ing');
+                }
+
+                notification.onclose = function () {
+                    // 消息框关闭时会被调用
+                    console.log('桌面通知已关闭');
+                }
+
+                notification.onclick = function () {
+                    notification.close(); // 关闭桌面通知
+
+                    // 点击桌面通知，模拟实现把用户小化的窗口大化并刷新
+                    // var href = window.location.href; // 获取当前页面的url
+                    // window.close(); // 将当前页面关闭 close 只能关闭 window.open 打开的窗口
+                    // window.open(href); // 新开一个页面，url为当前页面
+                }
+
+                notification.onerror = function () {
+                    // 当有错误发生时会onerror函数会被调用
+                    console.log('桌面通知发生了错误');
+                }
+            });
+        }
+
+        window.onload = function (e) {
+            Notification.requestPermission(function (status) {
+                /* 
+                    default: 用户还未被询问是否授权，所以通知不会被显示
+                    granted: 之前已经询问过用户，并且用户已经授予了显示通知的权限
+                    denied: 用户已经明确的拒绝了显示通知的权限
+                */
+                // console.log(status); // 仅当值为 "granted" 时显示通知
+                if (status == "denied") {
+                    alert("请您设置允许本程序的通知权限\n点击浏览器地址栏左侧的查看网站信息，开启通知权限，并重新加载本程序");
+                    return;
+                } else if (status == "default") {
+                    alert("未允许通知权限");
+                    return;
+                } else {
+                    console.log("已允许通知权限");
+                    allowNotification = true;
+                }
+            })
+        }
+
+        // 文字转为语音播报函数
+        function pcSpeak(text) {
+            const synth = window.speechSynthesis;
+            const utterThis = new SpeechSynthesisUtterance(text);
+            // 语言
+            // utterThis.lang = "";
+
+            // 音调 0-1
+            utterThis.pitch = 1;
+
+            // 语速 0-1
+            utterThis.rate = 0.8;
+
+            // 发音内容
+            // utterThis.text = 'Hello I am speaking';
+
+            // 发音角色 voices = synth.getVoices();
+            // utterThis.voice = "";
+
+            // 音量 0-1
+            utterThis.volume = 1;
+
+            // 发出语音
+            synth.speak(utterThis);
+        }
     </script>
 </body>
 
